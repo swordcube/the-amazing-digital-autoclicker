@@ -1,15 +1,16 @@
 import sys
+import platform
 import os
-os.environ["QT_QPA_PLATFORM"] = "xcb"
-
-# GO ON, BE AS EVIL AS YOU WANT MY FRIEND >:D 
-import pyautogui
-pyautogui.PAUSE = 0
 
 from PySide6 import QtCore, QtWidgets, QtGui
 from pynput import mouse as pymouse
 from pynput import keyboard as pykeyboard
 
+wrong_os = platform.system().lower() != "linux"
+if not wrong_os:
+    os.environ["QT_QPA_PLATFORM"] = "xcb"
+
+app: QtWidgets.QApplication = None
 widget: TheAmazingDigitalWidget = None
 
 class KeybindButton(QtWidgets.QPushButton):
@@ -239,6 +240,14 @@ class TheAmazingDigitalWidget(QtWidgets.QWidget):
         self.clickTimer.setInterval(25)       
         self.clickTimer.timeout.connect(self.tryClick)
 
+        if wrong_os:
+            msg = QtWidgets.QMessageBox(self)
+            msg.setIcon(QtWidgets.QMessageBox.Icon.Warning)
+            msg.setWindowTitle("Hey! Listen!")
+            msg.setText(f"This autoclicker was only tested for Linux Wayland systems!\nYou are running {platform.system()}, which may be incompatible!")
+            msg.setStandardButtons(QtWidgets.QMessageBox.StandardButton.Ok)
+            msg.exec()
+
     def numberOfClicksToggled(self):
         self.clickNumberOfTimesBox.setEnabled(self.clickNumberOfTimesRadioButton.isChecked())
 
@@ -269,6 +278,7 @@ class TheAmazingDigitalWidget(QtWidgets.QWidget):
             self.hotkeyButton.shortcutActivated()
 
 def main():
+    global app
     app = QtWidgets.QApplication([])
 
     global widget
